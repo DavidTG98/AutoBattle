@@ -11,44 +11,40 @@ namespace AutoBattle
         public List<GridBox> grids = new List<GridBox>();
         public int xLenght;
         public int yLength;
+
         public Grid(int Lines, int Columns)
         {
             xLenght = Lines;
             yLength = Columns;
-            Console.WriteLine("The battle field has been created\n");
-            for (int i = 0; i < Lines; i++)
-            {
-                    grids.Add(newBox);
-                for(int j = 0; j < Columns; j++)
-                {
-                    GridBox newBox = new GridBox(j, i, false, (Columns * i + j));
-                    Console.Write($"{newBox.Index}\n");
-                }
-            }
-        }
 
-        // prints the matrix that indicates the tiles of the battlefield
-        public void drawBattlefield(int Lines, int Columns)
-        {
             for (int i = 0; i < Lines; i++)
             {
                 for (int j = 0; j < Columns; j++)
                 {
-                    GridBox currentgrid = new GridBox();
-                    if (currentgrid.ocupied)
-                    {
-                        //if()
-                        Console.Write("[X]\t");
-                    }
-                    else
-                    {
-                        Console.Write($"[ ]\t");
-                    }
+                    GridBox newBox = new GridBox(j, i, false, (Columns * i + j));
+                    grids.Add(newBox);
                 }
-                Console.Write(Environment.NewLine + Environment.NewLine);
             }
-            Console.Write(Environment.NewLine + Environment.NewLine);
+
+            Console.WriteLine("The battle field has been created\n");
         }
 
+        // prints the matrix that indicates the tiles of the battlefield
+        public void DrawBattlefield()
+        {
+            for (int i = 0; i < xLenght; i++)
+            {
+                for (int j = 0; j < yLength; j++)
+                {
+                    GridBox currentgrid = new GridBox();
+                    Console.Write($"[{GetGridChar()}]\t");
+                    string GetGridChar() => currentgrid.ocupied ? "X" : " ";
+                }
+
+                Console.Write(Environment.NewLine + Environment.NewLine);
+            }
+
+            Console.Write(Environment.NewLine + Environment.NewLine);
+        }
     }
 }
