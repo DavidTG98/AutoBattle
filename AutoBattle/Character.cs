@@ -29,6 +29,14 @@ namespace AutoBattle
             PlayerIndex = index;
         }
 
+        public void MoveTo(Grid grid, (int, int) coordenate, bool setPos = false)
+        {
+            if (setPos == false)
+                grid.SetGridOcupation(_currentBox.GetCoordinates(), false);
+
+            grid.SetGridOcupation(coordenate, true);
+            _currentBox = grid.dicGrids[coordenate];
+        }
 
         public void TakeDamage(float amount)
         {
@@ -42,7 +50,7 @@ namespace AutoBattle
         public void SetCharacterTarget(Character target) => _target = target;
         public void Die()
         {
-            //TODO >> maybe kill him?
+            Console.WriteLine($"{_name} has died");
         }
 
         public void StartTurn(Grid battlefield)
@@ -50,20 +58,18 @@ namespace AutoBattle
             if (CheckCloseTargets(battlefield))
             {
                 Attack(_target);
-
-
                 return;
             }
             else
             {   // if there is no target close enough, calculates in wich direction this character should move to be closer to a possible target
-                if (_currentBox.xIndex > _target._currentBox.xIndex)
+                if (_currentBox.X_Index > _target._currentBox.X_Index)
                 {
                     if (battlefield.grids.Exists(x => x.Index == _currentBox.Index - 1))
                     {
-                        _currentBox.ocupied = false;
+                        _currentBox.SetOcupied(false);
                         battlefield.grids[_currentBox.Index] = _currentBox;
-                        _currentBox = (battlefield.grids.Find(x => x.Index == _currentBox.Index - 1));
-                        _currentBox.ocupied = true;
+                        _currentBox = battlefield.grids.Find(x => x.Index == _currentBox.Index - 1);
+                        _currentBox.SetOcupied(true);
                         battlefield.grids[_currentBox.Index] = _currentBox;
                         Console.WriteLine($"{_name} walked left\n");
                         battlefield.DrawBattlefield();
@@ -71,35 +77,35 @@ namespace AutoBattle
                         return;
                     }
                 }
-                else if (_currentBox.xIndex < _target._currentBox.xIndex)
+                else if (_currentBox.X_Index < _target._currentBox.X_Index)
                 {
-                    _currentBox.ocupied = false;
+                    _currentBox.SetOcupied(false);
                     battlefield.grids[_currentBox.Index] = _currentBox;
-                    _currentBox = (battlefield.grids.Find(x => x.Index == _currentBox.Index + 1));
-                    _currentBox.ocupied = true;
+                    _currentBox = battlefield.grids.Find(x => x.Index == _currentBox.Index + 1);
+                    _currentBox.SetOcupied(true);
                     battlefield.grids[_currentBox.Index] = _currentBox;
                     Console.WriteLine($"{_name} walked right\n");
                     battlefield.DrawBattlefield();
                     return;
                 }
 
-                if (_currentBox.yIndex > _target._currentBox.yIndex)
+                if (_currentBox.Y_Index > _target._currentBox.Y_Index)
                 {
                     battlefield.DrawBattlefield();
-                    _currentBox.ocupied = false;
+                    _currentBox.SetOcupied(false);
                     battlefield.grids[_currentBox.Index] = _currentBox;
-                    _currentBox = (battlefield.grids.Find(x => x.Index == _currentBox.Index - battlefield.xLenght));
-                    _currentBox.ocupied = true;
+                    _currentBox = battlefield.grids.Find(x => x.Index == _currentBox.Index - battlefield.xLenght);
+                    _currentBox.SetOcupied(true);
                     battlefield.grids[_currentBox.Index] = _currentBox;
                     Console.WriteLine($"{_name} walked up\n");
                     return;
                 }
-                else if (_currentBox.yIndex < _target._currentBox.yIndex)
+                else if (_currentBox.Y_Index < _target._currentBox.Y_Index)
                 {
-                    _currentBox.ocupied = true;
+                    _currentBox.SetOcupied(true);
                     battlefield.grids[_currentBox.Index] = _currentBox;
-                    _currentBox = (battlefield.grids.Find(x => x.Index == _currentBox.Index + battlefield.xLenght));
-                    _currentBox.ocupied = false;
+                    _currentBox = battlefield.grids.Find(x => x.Index == _currentBox.Index + battlefield.xLenght);
+                    _currentBox.SetOcupied(false);
                     battlefield.grids[_currentBox.Index] = _currentBox;
                     Console.WriteLine($"{_name} walked down\n");
                     battlefield.DrawBattlefield();
@@ -112,10 +118,10 @@ namespace AutoBattle
         // Check in x and y directions if there is any character close enough to be a target.
         bool CheckCloseTargets(Grid battlefield)
         {
-            bool left = battlefield.grids.Find(x => x.Index == _currentBox.Index - 1).ocupied;
-            bool right = battlefield.grids.Find(x => x.Index == _currentBox.Index + 1).ocupied;
-            bool up = battlefield.grids.Find(x => x.Index == _currentBox.Index + battlefield.xLenght).ocupied;
-            bool down = battlefield.grids.Find(x => x.Index == _currentBox.Index - battlefield.xLenght).ocupied;
+            bool left = battlefield.grids.Find(x => x.Index == _currentBox.Index - 1).IsOcupied;
+            bool right = battlefield.grids.Find(x => x.Index == _currentBox.Index + 1).IsOcupied;
+            bool up = battlefield.grids.Find(x => x.Index == _currentBox.Index + battlefield.xLenght).IsOcupied;
+            bool down = battlefield.grids.Find(x => x.Index == _currentBox.Index - battlefield.xLenght).IsOcupied;
 
             return left & right & up & down;
         }

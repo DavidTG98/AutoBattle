@@ -1,18 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
+﻿using System.Collections.Generic;
+using System;
 
 namespace AutoBattle
 {
-    public partial class Grid
+    public sealed class Grid
     {
-        public List<GridBox> grids = new List<GridBox>();
+        public Dictionary<(int, int), GridBox> dicGrids;
+        public List<GridBox> grids = new List<GridBox>();   //DELETE LATER
         public int xLenght;
         public int yLength;
 
+        public (int, int) GetRandomCoordenate() => (Helper.GetRandomInt(0, xLenght), Helper.GetRandomInt(0, yLength));
+
         public Grid(int Lines, int Columns)
         {
+            dicGrids = new Dictionary<(int, int), GridBox>();
+
             xLenght = Lines;
             yLength = Columns;
 
@@ -20,28 +23,33 @@ namespace AutoBattle
             {
                 for (int j = 0; j < Columns; j++)
                 {
-                    GridBox newBox = new GridBox(j, i, false, (Columns * i + j));
+                    GridBox newBox = new GridBox(j, i, false, Columns * i + j);
+                    (int, int) coordenate = (j, i);
+
                     grids.Add(newBox);
+                    dicGrids.Add(coordenate, newBox);
                 }
             }
 
             Console.WriteLine("The battle field has been created\n");
         }
 
-        // prints the matrix that indicates the tiles of the battlefield
+        public void SetGridOcupation((int, int) coordenate, bool isOcupied)
+        {
+            GridBox c = dicGrids[coordenate];
+            c.SetOcupied(isOcupied);
+            dicGrids[coordenate] = c;
+        }
+
         public void DrawBattlefield()
         {
             for (int i = 0; i < xLenght; i++)
             {
                 for (int j = 0; j < yLength; j++)
                 {
-                    GridBox currentgrid = new GridBox();
                     Console.Write($"[{GetGridChar()}]\t");
-                    string GetGridChar()
-                    {
-                        Console.WriteLine(currentgrid.ocupied);
-                        return currentgrid.ocupied ? "X" : " ";
-                    }
+
+                    string GetGridChar() => dicGrids[(i, j)].IsOcupied ? "X" : " ";
                 }
 
                 Console.Write(Environment.NewLine + Environment.NewLine);

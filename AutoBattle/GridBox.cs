@@ -1,19 +1,28 @@
-﻿namespace AutoBattle
+﻿using System;
+
+namespace AutoBattle
 {
     public struct GridBox
     {
-        public int xIndex;
-        public int yIndex;
-        public bool ocupied;
-        public int Index;
+        public int X_Index { get; private set; }
+        public int Y_Index { get; private set; }
+        public int Index { get; private set; }
 
-        public GridBox(int x, int y, bool ocupied, int index)
+        public bool IsOcupied { get; private set; }
+        public (int, int) GetCoordinates() => (X_Index, Y_Index);
+
+        public GridBox(int x, int y, bool isOcupied, int index)
         {
-            xIndex = x;
-            yIndex = y;
-            this.ocupied = ocupied;
+            X_Index = x;
+            Y_Index = y;
             Index = index;
+            IsOcupied = isOcupied;
         }
 
+        public void SetOcupied(bool isOcupied)
+        {
+            //Console.WriteLine($"{X_Index},{Y_Index} ({Index}) has set occupation to {isOcupied}");
+            IsOcupied = isOcupied;
+        }
     }
 }
