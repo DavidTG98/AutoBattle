@@ -37,7 +37,11 @@ namespace AutoBattle
                 {
                     GridBox currentgrid = new GridBox();
                     Console.Write($"[{GetGridChar()}]\t");
-                    string GetGridChar() => currentgrid.ocupied ? "X" : " ";
+                    string GetGridChar()
+                    {
+                        Console.WriteLine(currentgrid.ocupied);
+                        return currentgrid.ocupied ? "X" : " ";
+                    }
                 }
 
                 Console.Write(Environment.NewLine + Environment.NewLine);
