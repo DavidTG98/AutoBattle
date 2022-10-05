@@ -7,20 +7,23 @@ namespace AutoBattle
 {
     public class Character
     {
-        private string _name;
-        private float _health;
-        private float _baseDamage;
-        private float _damageMultiplier;
+        private int _health;
+        private int _baseDamage;
+        private int _damageMultiplier;
         private Character _target;
         private CharacterClass _characterClass;
 
         public GridBox _currentBox;
 
+        public bool IsDead => _health <= 0;
+        public void SetCharacterTarget(Character target) => _target = target;
+
+        public string Name { get; private set; }
         public int PlayerIndex { get; private set; }
 
-        public Character(string name, int index, float health, float baseDamage, float damageMultiplier, CharacterClass characterClass)
+        public Character(string name, int index, int health, int baseDamage, int damageMultiplier, CharacterClass characterClass)
         {
-            _name = name;
+            Name = name;
             _health = health;
             _baseDamage = baseDamage;
             _damageMultiplier = damageMultiplier;
@@ -29,16 +32,27 @@ namespace AutoBattle
             PlayerIndex = index;
         }
 
-        public void MoveTo(Grid grid, (int, int) coordenate, bool setPos = false)
+        public bool MoveTo(Grid grid, (int, int) coordenate, bool setPos = false)
         {
             if (setPos == false)
                 grid.SetGridOcupation(_currentBox.GetCoordinates(), false);
 
-            grid.SetGridOcupation(coordenate, true);
-            _currentBox = grid.dicGrids[coordenate];
+
+            if (grid.dicGrids[coordenate].IsOcupied || coordenate.Item1 > grid.xLenght || coordenate.Item2 > grid.yLength)
+            {
+                Console.WriteLine($"{Name} cannot move to ({coordenate.Item1},{coordenate.Item2})");
+                return false;
+            }
+            else
+            {
+                Console.WriteLine($"{Name} move to ({coordenate.Item1},{coordenate.Item2})");
+                grid.SetGridOcupation(coordenate, true);
+                _currentBox = grid.dicGrids[coordenate];
+                return true;
+            }
         }
 
-        public void TakeDamage(float amount)
+        public void TakeDamage(int amount)
         {
             _health -= amount;
 
@@ -46,91 +60,66 @@ namespace AutoBattle
                 Die();
         }
 
-        public bool IsDead => _health <= 0;
-        public void SetCharacterTarget(Character target) => _target = target;
         public void Die()
         {
-            Console.WriteLine($"{_name} has died");
+            Console.WriteLine($"{Name} has died");
         }
 
-        public void StartTurn(Grid battlefield)
+        public void DoAction(Grid grid)
         {
-            if (CheckCloseTargets(battlefield))
+            if (HasCloseTargets(grid))
             {
                 Attack(_target);
-                return;
             }
             else
-            {   // if there is no target close enough, calculates in wich direction this character should move to be closer to a possible target
-                if (_currentBox.X_Index > _target._currentBox.X_Index)
-                {
-                    if (battlefield.grids.Exists(x => x.Index == _currentBox.Index - 1))
-                    {
-                        _currentBox.SetOcupied(false);
-                        battlefield.grids[_currentBox.Index] = _currentBox;
-                        _currentBox = battlefield.grids.Find(x => x.Index == _currentBox.Index - 1);
-                        _currentBox.SetOcupied(true);
-                        battlefield.grids[_currentBox.Index] = _currentBox;
-                        Console.WriteLine($"{_name} walked left\n");
-                        battlefield.DrawBattlefield();
-
-                        return;
-                    }
-                }
-                else if (_currentBox.X_Index < _target._currentBox.X_Index)
-                {
-                    _currentBox.SetOcupied(false);
-                    battlefield.grids[_currentBox.Index] = _currentBox;
-                    _currentBox = battlefield.grids.Find(x => x.Index == _currentBox.Index + 1);
-                    _currentBox.SetOcupied(true);
-                    battlefield.grids[_currentBox.Index] = _currentBox;
-                    Console.WriteLine($"{_name} walked right\n");
-                    battlefield.DrawBattlefield();
-                    return;
-                }
-
-                if (_currentBox.Y_Index > _target._currentBox.Y_Index)
-                {
-                    battlefield.DrawBattlefield();
-                    _currentBox.SetOcupied(false);
-                    battlefield.grids[_currentBox.Index] = _currentBox;
-                    _currentBox = battlefield.grids.Find(x => x.Index == _currentBox.Index - battlefield.xLenght);
-                    _currentBox.SetOcupied(true);
-                    battlefield.grids[_currentBox.Index] = _currentBox;
-                    Console.WriteLine($"{_name} walked up\n");
-                    return;
-                }
-                else if (_currentBox.Y_Index < _target._currentBox.Y_Index)
-                {
-                    _currentBox.SetOcupied(true);
-                    battlefield.grids[_currentBox.Index] = _currentBox;
-                    _currentBox = battlefield.grids.Find(x => x.Index == _currentBox.Index + battlefield.xLenght);
-                    _currentBox.SetOcupied(false);
-                    battlefield.grids[_currentBox.Index] = _currentBox;
-                    Console.WriteLine($"{_name} walked down\n");
-                    battlefield.DrawBattlefield();
-
-                    return;
-                }
+            {
+                MoveTowardsTarget(grid);
             }
+
+            grid.DrawBattlefield();
         }
 
-        // Check in x and y directions if there is any character close enough to be a target.
-        bool CheckCloseTargets(Grid battlefield)
+        private void MoveTowardsTarget(Grid grid)
         {
-            bool left = battlefield.grids.Find(x => x.Index == _currentBox.Index - 1).IsOcupied;
-            bool right = battlefield.grids.Find(x => x.Index == _currentBox.Index + 1).IsOcupied;
-            bool up = battlefield.grids.Find(x => x.Index == _currentBox.Index + battlefield.xLenght).IsOcupied;
-            bool down = battlefield.grids.Find(x => x.Index == _currentBox.Index - battlefield.xLenght).IsOcupied;
+            var trgC = _target._currentBox.GetCoordinates();
+            var desiredC = _currentBox.GetCoordinates();
 
-            return left & right & up & down;
+            if (desiredC.Item1 != trgC.Item1)
+                desiredC.Item1 += (desiredC.Item1 > trgC.Item1) ? -1 : 1;
+            else
+                desiredC.Item2 += (desiredC.Item2 > trgC.Item2) ? -1 : 1;
+
+            MoveTo(grid, desiredC);
+        }
+
+        private bool HasCloseTargets(Grid grid)
+        {
+            var myCoordenate = _currentBox.GetCoordinates();
+
+            if (grid.dicGrids.TryGetValue((myCoordenate.Item1 + 1, myCoordenate.Item2), out GridBox gridBox))
+                if (gridBox.IsOcupied)
+                    return true;
+
+            if (grid.dicGrids.TryGetValue((myCoordenate.Item1 - 1, myCoordenate.Item2), out gridBox))
+                if (gridBox.IsOcupied)
+                    return true;
+
+            if (grid.dicGrids.TryGetValue((myCoordenate.Item1, myCoordenate.Item2 + 1), out gridBox))
+                if (gridBox.IsOcupied)
+                    return true;
+
+            if (grid.dicGrids.TryGetValue((myCoordenate.Item1, myCoordenate.Item2 - 1), out gridBox))
+                if (gridBox.IsOcupied)
+                    return true;
+
+            return false;
         }
 
         public void Attack(Character target)
         {
-            float damage = Helper.GetRandomInt(0, (int)(_baseDamage * _damageMultiplier));
+            int damage = Helper.GetRandomInt(0, _baseDamage * _damageMultiplier);
             target.TakeDamage(damage);
-            Console.WriteLine($"{_name} is attacking the player {_target.PlayerIndex} and did {damage} damage\n");
+            Console.WriteLine($"{Name} is attacking {_target.Name} and did {damage} damage\n");
         }
     }
 }

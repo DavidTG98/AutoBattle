@@ -14,13 +14,13 @@ namespace AutoBattle
             List<Character> AllPlayers = new List<Character>();
 
             int currentTurn = 0;
-            //int numberOfPossibleTiles = grid.grids.Count;
 
             //CREATE CHARACTERS!
             int playerClassChoice = GetValidPlayerClassChoice();
 
-            Character PlayerCharacter = CreateCharacter("Player", 100, 20, 1, (CharacterClass)playerClassChoice);
-            Character EnemyCharacter = CreateCharacter("Enemy", 100, 20, 1, Helper.GetRandomClass());
+            Console.WriteLine();
+            Character PlayerCharacter = CreateCharacter("Player", health: 100, baseDamage: 20, damageMultiplier: 1, (CharacterClass)playerClassChoice);
+            Character EnemyCharacter = CreateCharacter("Enemy", health: 100, baseDamage: 20, damageMultiplier: 1, Helper.GetRandomClass());
 
             StartGame();
 
@@ -50,7 +50,7 @@ namespace AutoBattle
 
                 return choice;
             }
-            Character CreateCharacter(string name, float health, float baseDamage, float damageMultiplier, CharacterClass characterClass)
+            Character CreateCharacter(string name, int health, int baseDamage, int damageMultiplier, CharacterClass characterClass)
             {
                 Console.WriteLine($"{name} Class Choice: {characterClass}");
                 Character character = new Character(name, AllPlayers.Count, health, baseDamage, damageMultiplier, characterClass);
@@ -62,16 +62,19 @@ namespace AutoBattle
                 if (grid.dicGrids[position].IsOcupied)
                     return false;
 
+                Console.WriteLine($"{character.Name} spawn at ({position.Item1},{position.Item2})");
                 character.MoveTo(grid, position, true);
                 return true;
             }
 
             void StartGame()
             {
+                Console.WriteLine();
                 EnemyCharacter.SetCharacterTarget(PlayerCharacter);
                 PlayerCharacter.SetCharacterTarget(EnemyCharacter);
 
                 //Set Characters position
+                Console.WriteLine();
                 TrySetCharacterPosition(PlayerCharacter, (0, 0));
                 while (TrySetCharacterPosition(EnemyCharacter, grid.GetRandomCoordenate()) == false) { }
 
@@ -82,9 +85,12 @@ namespace AutoBattle
 
             void StartTurn()
             {
+                Console.WriteLine($"{currentTurn} Turn has started");
+
                 foreach (Character character in AllPlayers)
                 {
-                    character.StartTurn(grid);
+                    Console.WriteLine($"{character.Name} start turn");
+                    character.DoAction(grid);
                 }
 
                 currentTurn++;

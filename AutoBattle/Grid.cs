@@ -6,7 +6,6 @@ namespace AutoBattle
     public sealed class Grid
     {
         public Dictionary<(int, int), GridBox> dicGrids;
-        public List<GridBox> grids = new List<GridBox>();   //DELETE LATER
         public int xLenght;
         public int yLength;
 
@@ -25,8 +24,6 @@ namespace AutoBattle
                 {
                     GridBox newBox = new GridBox(j, i, false, Columns * i + j);
                     (int, int) coordenate = (j, i);
-
-                    grids.Add(newBox);
                     dicGrids.Add(coordenate, newBox);
                 }
             }
@@ -47,6 +44,7 @@ namespace AutoBattle
             {
                 for (int j = 0; j < yLength; j++)
                 {
+                    //Console.Write($"[({i},{j}){GetGridChar()}]\t");
                     Console.Write($"[{GetGridChar()}]\t");
 
                     string GetGridChar() => dicGrids[(i, j)].IsOcupied ? "X" : " ";
