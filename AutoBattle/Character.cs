@@ -66,7 +66,7 @@ namespace AutoBattle
                         _currentBox = (battlefield.grids.Find(x => x.Index == _currentBox.Index - 1));
                         _currentBox.ocupied = true;
                         battlefield.grids[_currentBox.Index] = _currentBox;
-                        Console.WriteLine($"Player {PlayerIndex} walked left\n");
+                        Console.WriteLine($"{_name} walked left\n");
                         battlefield.DrawBattlefield();
 
                         return;
@@ -79,7 +79,7 @@ namespace AutoBattle
                     _currentBox = (battlefield.grids.Find(x => x.Index == _currentBox.Index + 1));
                     _currentBox.ocupied = true;
                     battlefield.grids[_currentBox.Index] = _currentBox;
-                    Console.WriteLine($"Player {PlayerIndex} walked right\n");
+                    Console.WriteLine($"{_name} walked right\n");
                     battlefield.DrawBattlefield();
                     return;
                 }
@@ -92,7 +92,7 @@ namespace AutoBattle
                     _currentBox = (battlefield.grids.Find(x => x.Index == _currentBox.Index - battlefield.xLenght));
                     _currentBox.ocupied = true;
                     battlefield.grids[_currentBox.Index] = _currentBox;
-                    Console.WriteLine($"Player {PlayerIndex} walked up\n");
+                    Console.WriteLine($"{_name} walked up\n");
                     return;
                 }
                 else if (_currentBox.yIndex < _target._currentBox.yIndex)
@@ -102,7 +102,7 @@ namespace AutoBattle
                     _currentBox = (battlefield.grids.Find(x => x.Index == _currentBox.Index + battlefield.xLenght));
                     _currentBox.ocupied = false;
                     battlefield.grids[_currentBox.Index] = _currentBox;
-                    Console.WriteLine($"Player {PlayerIndex} walked down\n");
+                    Console.WriteLine($"{_name} walked down\n");
                     battlefield.DrawBattlefield();
 
                     return;
@@ -125,7 +125,7 @@ namespace AutoBattle
         {
             float damage = Helper.GetRandomInt(0, (int)(_baseDamage * _damageMultiplier));
             target.TakeDamage(damage);
-            Console.WriteLine($"Player {PlayerIndex} is attacking the player {_target.PlayerIndex} and did {damage} damage\n");
+            Console.WriteLine($"{_name} is attacking the player {_target.PlayerIndex} and did {damage} damage\n");
         }
     }
 }

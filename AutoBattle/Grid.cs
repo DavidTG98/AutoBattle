@@ -6,7 +6,7 @@ using static AutoBattle.Types;
 
 namespace AutoBattle
 {
-    public class Grid
+    public partial class Grid
     {
         public List<GridBox> grids = new List<GridBox>();
         public int xLenght;

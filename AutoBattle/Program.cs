@@ -19,18 +19,14 @@ namespace AutoBattle
             int numberOfPossibleTiles = grid.grids.Count;
 
             //CREATE CHARACTERS!
-            int playerClassChoice = GetPlayerChoice();
-            while (playerClassChoice <= 0 || playerClassChoice > Enum.GetNames(typeof(CharacterClass)).Length)
-            {
-                playerClassChoice = GetPlayerChoice();
-            }
+            int playerClassChoice = GetValidPlayerClassChoice();
 
             Character PlayerCharacter = CreateCharacter("Player", 100, 20, 1, (CharacterClass)playerClassChoice);
             Character EnemyCharacter = CreateCharacter("Enemy", 100, 20, 1, Helper.GetRandomClass());
 
             StartGame();
 
-            int GetPlayerChoice()
+            int GetValidPlayerClassChoice()
             {
                 //asks for the player to choose between for possible classes via console.
                 Console.WriteLine("Choose Between One of this Classes:\n");
@@ -43,10 +39,15 @@ namespace AutoBattle
                 }
                 Console.WriteLine();
 
-                //Get valid player class choice
-                return int.Parse(Console.ReadLine());
-            }
+                int choice = int.Parse(Console.ReadLine());
+                while (choice <= 0 || choice > Enum.GetNames(typeof(CharacterClass)).Length)
+                {
+                    Console.WriteLine();
+                    choice = GetValidPlayerClassChoice();
+                }
 
+                return choice;
+            }
             Character CreateCharacter(string name, float health, float baseDamage, float damageMultiplier, CharacterClass characterClass)
             {
                 Console.WriteLine($"{name} Class Choice: {characterClass}");
