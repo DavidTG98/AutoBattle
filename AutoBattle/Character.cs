@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AutoBattle
 {
-    public class Character
+    public sealed class Character
     {
         //Variables
         private int _baseDamage;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace AutoBattle
 {
-    class Program
+    sealed class Program
     {
         private static void Main(string[] args)
         {
@@ -108,7 +108,6 @@ namespace AutoBattle
                 if (grid.dicGrids[position].IsOcupied)
                     return false;
 
-                //Console.WriteLine($"{character.Name} spawn at ({position.Item1},{position.Item2})");
                 character.MoveTo(grid, position, true);
                 return true;
             }

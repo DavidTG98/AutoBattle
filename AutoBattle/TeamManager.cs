@@ -35,7 +35,6 @@ namespace AutoBattle
                             foreach (Character enemy in team.Value)
                             {
                                 c.AddTarget(enemy);
-                                //Console.WriteLine($"{c.Name} Add {enemy.Name} as Target");
                             }
                         }
                     }

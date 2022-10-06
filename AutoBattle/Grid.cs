@@ -26,7 +26,7 @@ namespace AutoBattle
                 }
             }
 
-            Console.WriteLine("The battle field has been created\n");
+            Console.WriteLine("The battlefield has been created\n");
         }
 
         public void SetGridOcupation((int, int) coordenate, bool isOcupied, char simbol = ' ')
@@ -36,7 +36,6 @@ namespace AutoBattle
             dicGrids[coordenate] = c;
         }
 
-        //Retorna falso caso a coordenada esteja fora dos limites do grid
         public bool Exists((int, int) coordenate)
         {
             if (coordenate.Item1 > xLenght || coordenate.Item2 > yLength || coordenate.Item1 < 0 || coordenate.Item2 < 0)
@@ -51,7 +50,6 @@ namespace AutoBattle
             {
                 for (int j = 0; j < yLength; j++)
                 {
-                    //Console.Write($"[({i},{j})]\t");
                     Console.Write($"[{dicGrids[(i, j)].Simbol}]");
                 }
 
