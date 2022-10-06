@@ -6,8 +6,8 @@ namespace AutoBattle
 {
     static class TeamManager
     {
-        public static readonly Dictionary<Team, List<Character>> _teams = new Dictionary<Team, List<Character>>();
-        public static event Action<Team> OnBattleIsOver = delegate { };
+        private static readonly Dictionary<Team, List<Character>> _teams = new Dictionary<Team, List<Character>>();
+        public static event Action OnBattleIsOver = delegate { };
 
         public static void AddCharacterToTeam(Character character)
         {
@@ -16,6 +16,8 @@ namespace AutoBattle
 
             _teams[character.Team].Add(character);
         }
+        public static bool CheckWOWin() => _teams.Keys.Count <= 1;
+        public static Team GetRemainingTeam() => _teams.Keys.First();
 
         public static void SetTargets()
         {
@@ -40,7 +42,6 @@ namespace AutoBattle
                 }
             }
         }
-
         public static void RemovePlayerFromTeam(Character character)
         {
             _teams[character.Team].Remove(character);
@@ -50,7 +51,6 @@ namespace AutoBattle
                 EliminateTeam(character.Team);
             }
         }
-
         private static void EliminateTeam(Team team)
         {
             Console.WriteLine($"TEAM {team} WAS ELIMINATED!!!");
@@ -59,7 +59,7 @@ namespace AutoBattle
 
             if (_teams.Count == 1)
             {
-                OnBattleIsOver?.Invoke(_teams.Keys.First());
+                OnBattleIsOver?.Invoke();
             }
         }
     }

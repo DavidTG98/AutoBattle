@@ -7,20 +7,26 @@ namespace AutoBattle
     {
         private static void Main(string[] args)
         {
-            Grid grid = new Grid(2, 2);
+            Grid grid = new Grid(5, 7);
             List<Character> AllPlayers = new List<Character>();
             Action ShowAllPlayersStats = delegate { };
 
             bool isOver = false;
-            Team winnerTeam = Team.Letter;
             int currentTurn = 0;
             int playerClassChoice = Helper.GetValidPlayerClassChoice();
 
-            TeamManager.OnBattleIsOver += TeamManager_OnBattleIsOver;
+            TeamManager.OnBattleIsOver += () => { isOver = true; };
 
             //CREATE CHARACTERS!
             Console.WriteLine();
             CreatePlayers();
+
+            if (TeamManager.CheckWOWin())
+            {
+                Console.WriteLine("-------------------------------------------");
+                Console.WriteLine($"TEAM {TeamManager.GetRemainingTeam()} WIN FOR W.O.");
+                return;
+            }
 
             TeamManager.SetTargets();
 
@@ -48,7 +54,7 @@ namespace AutoBattle
                 if (isOver)
                 {
                     Console.WriteLine("-------------------------------------------");
-                    Console.WriteLine($"TEAM {winnerTeam} WIN THE GAME!!!");
+                    Console.WriteLine($"TEAM {TeamManager.GetRemainingTeam()} WIN THE GAME!!!");
                     return;
                 }
 
@@ -111,12 +117,6 @@ namespace AutoBattle
             {
                 grid.SetGridOcupation(character.CurrentBox.Coordinates, false);
                 TeamManager.RemovePlayerFromTeam(character);
-            }
-
-            void TeamManager_OnBattleIsOver(Team team)
-            {
-                winnerTeam = team;
-                isOver = true;
             }
         }
     }
