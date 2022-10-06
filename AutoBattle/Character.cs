@@ -21,18 +21,16 @@ namespace AutoBattle
         public GridBox CurrentBox { get; private set; }
         public string Name { get; private set; }
         public int Health { get; private set; }
-        public int PlayerIndex { get; private set; }
         public char Simbol { get; private set; }
         public Team Team { get; private set; }
 
 
         public void AddTarget(Character target) => _targets.Add(target);
 
-        public Character(string name, char simbol, int index, int health, int baseDamage, int damageMultiplier, CharacterClass characterClass, Team team)
+        public Character(string name, char simbol, int health, int baseDamage, int damageMultiplier, CharacterClass characterClass, Team team)
         {
             Name = name;
             Health = health;
-            PlayerIndex = index;
             Simbol = simbol;
             Team = team;
 
