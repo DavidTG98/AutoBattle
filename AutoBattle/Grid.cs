@@ -5,7 +5,7 @@ namespace AutoBattle
 {
     public sealed class Grid
     {
-        public Dictionary<(int, int), GridBox> dicGrids;
+        public readonly Dictionary<(int, int), GridBox> dicGrids = new Dictionary<(int, int), GridBox>();
         public int xLenght;
         public int yLength;
 
@@ -13,17 +13,15 @@ namespace AutoBattle
 
         public Grid(int Lines, int Columns)
         {
-            dicGrids = new Dictionary<(int, int), GridBox>();
-
             xLenght = Lines;
             yLength = Columns;
 
-            for (int i = 0; i < Lines; i++)
+            for (int x = 0; x < Lines; x++)
             {
-                for (int j = 0; j < Columns; j++)
+                for (int y = 0; y < Columns; y++)
                 {
-                    GridBox newBox = new GridBox(j, i, false, Columns * i + j);
-                    (int, int) coordenate = (j, i);
+                    GridBox newBox = new GridBox(x, y);
+                    (int, int) coordenate = (x, y);
                     dicGrids.Add(coordenate, newBox);
                 }
             }
@@ -31,29 +29,38 @@ namespace AutoBattle
             Console.WriteLine("The battle field has been created\n");
         }
 
-        public void SetGridOcupation((int, int) coordenate, bool isOcupied)
+        public void SetGridOcupation((int, int) coordenate, bool isOcupied, char simbol = ' ')
         {
             GridBox c = dicGrids[coordenate];
-            c.SetOcupied(isOcupied);
+            c.SetOcupied(isOcupied, simbol);
             dicGrids[coordenate] = c;
+        }
+
+        //Retorna falso caso a coordenada esteja fora dos limites do grid
+        public bool Exists((int, int) coordenate)
+        {
+            if (coordenate.Item1 > xLenght || coordenate.Item2 > yLength || coordenate.Item1 < 0 || coordenate.Item2 < 0)
+                return false;
+
+            return true;
         }
 
         public void DrawBattlefield()
         {
+            Console.WriteLine();
+
             for (int i = 0; i < xLenght; i++)
             {
                 for (int j = 0; j < yLength; j++)
                 {
-                    //Console.Write($"[({i},{j}){GetGridChar()}]\t");
-                    Console.Write($"[{GetGridChar()}]\t");
-
-                    string GetGridChar() => dicGrids[(i, j)].IsOcupied ? "X" : " ";
+                    //Console.Write($"[({i},{j})]\t");
+                    Console.Write($"[{dicGrids[(i, j)].Simbol}]");
                 }
 
-                Console.Write(Environment.NewLine + Environment.NewLine);
+                Console.WriteLine();
             }
 
-            Console.Write(Environment.NewLine + Environment.NewLine);
+            Console.WriteLine();
         }
     }
 }

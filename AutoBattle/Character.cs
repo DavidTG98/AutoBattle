@@ -1,88 +1,117 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Linq;
 
 namespace AutoBattle
 {
     public class Character
     {
-        private int _health;
+        //Variables
         private int _baseDamage;
         private int _damageMultiplier;
-        private Character _target;
-        private CharacterClass _characterClass;
 
-        public GridBox _currentBox;
+        private CharacterClass _class;
 
-        public bool IsDead => _health <= 0;
-        public void SetCharacterTarget(Character target) => _target = target;
+        private readonly List<Character> _targets = new List<Character>();
+        private Character _closestTarget;
+        public event Action<Character> OnDeath = delegate { };
+        private bool isDead;
 
+
+        //Properties
+        public GridBox CurrentBox { get; private set; }
         public string Name { get; private set; }
+        public int Health { get; private set; }
         public int PlayerIndex { get; private set; }
+        public char Simbol { get; private set; }
+        public Team Team { get; private set; }
 
-        public Character(string name, int index, int health, int baseDamage, int damageMultiplier, CharacterClass characterClass)
+
+        public void AddTarget(Character target) => _targets.Add(target);
+
+        public Character(string name, char simbol, int index, int health, int baseDamage, int damageMultiplier, CharacterClass characterClass, Team team)
         {
             Name = name;
-            _health = health;
+            Health = health;
+            PlayerIndex = index;
+            Simbol = simbol;
+            Team = team;
+
             _baseDamage = baseDamage;
             _damageMultiplier = damageMultiplier;
-            _characterClass = characterClass;
+            _class = characterClass;
 
-            PlayerIndex = index;
+            HandleClassChoice();
+
+            Console.WriteLine($"{name}({simbol}) / Class Choice: {characterClass}");
         }
 
         public bool MoveTo(Grid grid, (int, int) coordenate, bool setPos = false)
         {
             if (setPos == false)
-                grid.SetGridOcupation(_currentBox.GetCoordinates(), false);
+                grid.SetGridOcupation(CurrentBox.Coordinates, false);
 
 
-            if (grid.dicGrids[coordenate].IsOcupied || coordenate.Item1 > grid.xLenght || coordenate.Item2 > grid.yLength)
+            if (grid.Exists(coordenate) == false)
             {
-                Console.WriteLine($"{Name} cannot move to ({coordenate.Item1},{coordenate.Item2})");
+                Console.WriteLine($"({coordenate.Item1},{coordenate.Item2}) doesnt exist.");
+                return false;
+            }
+            else if (grid.dicGrids[coordenate].IsOcupied)
+            {
+                Console.WriteLine($"({coordenate.Item1},{coordenate.Item2}) is already ocupied");
                 return false;
             }
             else
             {
-                Console.WriteLine($"{Name} move to ({coordenate.Item1},{coordenate.Item2})");
-                grid.SetGridOcupation(coordenate, true);
-                _currentBox = grid.dicGrids[coordenate];
+                if (setPos == false)
+                    Console.WriteLine($"{Name} move to ({coordenate.Item1},{coordenate.Item2})");
+
+                grid.SetGridOcupation(coordenate, true, Simbol);
+                CurrentBox = grid.dicGrids[coordenate];
                 return true;
             }
         }
 
         public void TakeDamage(int amount)
         {
-            _health -= amount;
+            Health -= amount;
 
-            if (_health <= 0)
+            if (Health <= 0)
                 Die();
         }
 
-        public void Die()
+        private void Die()
         {
-            Console.WriteLine($"{Name} has died");
+            isDead = true;
+            Health = 0;
+
+            OnDeath?.Invoke(this);
+
+            Console.WriteLine($"{Name}({Simbol}) has died. Bravely");
         }
 
         public void DoAction(Grid grid)
         {
-            if (HasCloseTargets(grid))
-            {
-                Attack(_target);
-            }
+            if (isDead)
+                return;
+
+            Console.WriteLine($"{Name}({Simbol}) phase!");
+
+            GetClosestTarget();
+
+            //If the distance between this character and his target is less or equal one, he is able to attack
+            if (CurrentBox.GetDistanceToOtherBox(_closestTarget.CurrentBox) <= 1)
+                Attack(_closestTarget);
             else
-            {
-                MoveTowardsTarget(grid);
-            }
+                TryMoveTowardsPosition(grid, _closestTarget.CurrentBox);
 
             grid.DrawBattlefield();
         }
 
-        private void MoveTowardsTarget(Grid grid)
+        private void TryMoveTowardsPosition(Grid grid, GridBox gridBox)
         {
-            var trgC = _target._currentBox.GetCoordinates();
-            var desiredC = _currentBox.GetCoordinates();
+            var trgC = gridBox.Coordinates;
+            var desiredC = CurrentBox.Coordinates;
 
             if (desiredC.Item1 != trgC.Item1)
                 desiredC.Item1 += (desiredC.Item1 > trgC.Item1) ? -1 : 1;
@@ -92,34 +121,64 @@ namespace AutoBattle
             MoveTo(grid, desiredC);
         }
 
-        private bool HasCloseTargets(Grid grid)
+        private void GetClosestTarget()
         {
-            var myCoordenate = _currentBox.GetCoordinates();
+            int distance = int.MaxValue;
 
-            if (grid.dicGrids.TryGetValue((myCoordenate.Item1 + 1, myCoordenate.Item2), out GridBox gridBox))
-                if (gridBox.IsOcupied)
-                    return true;
+            for (int i = 0; i < _targets.Count; i++)
+            {
+                if (_targets[i].isDead)
+                    continue;
 
-            if (grid.dicGrids.TryGetValue((myCoordenate.Item1 - 1, myCoordenate.Item2), out gridBox))
-                if (gridBox.IsOcupied)
-                    return true;
+                int localDist = CurrentBox.GetDistanceToOtherBox(_targets[i].CurrentBox);
 
-            if (grid.dicGrids.TryGetValue((myCoordenate.Item1, myCoordenate.Item2 + 1), out gridBox))
-                if (gridBox.IsOcupied)
-                    return true;
-
-            if (grid.dicGrids.TryGetValue((myCoordenate.Item1, myCoordenate.Item2 - 1), out gridBox))
-                if (gridBox.IsOcupied)
-                    return true;
-
-            return false;
+                if (localDist < distance)
+                {
+                    _closestTarget = _targets[i];
+                    distance = localDist;
+                }
+            }
         }
 
         public void Attack(Character target)
         {
-            int damage = Helper.GetRandomInt(0, _baseDamage * _damageMultiplier);
+            int damage = Helper.GetRandomInt(1, _baseDamage * _damageMultiplier);
             target.TakeDamage(damage);
-            Console.WriteLine($"{Name} is attacking {_target.Name} and did {damage} damage\n");
+            Console.WriteLine($"{Name}({Simbol}) attacked {target.Name}({target.Simbol}) and did {damage} damage\n");
+        }
+
+        public void ShowStats()
+        {
+            if (isDead)
+            {
+                Console.WriteLine($"{Name} is Dead");
+                return;
+            }
+
+            Console.WriteLine($"{Name}({Simbol}) / HP:{Health}");
+        }
+
+        public void HandleClassChoice()
+        {
+            switch (_class)
+            {
+                case CharacterClass.Warrior:
+                    Health += 20;
+                    break;
+                case CharacterClass.Paladin:
+                    _damageMultiplier += 1;
+                    break;
+                case CharacterClass.Cleric:
+                    Health += 5;
+                    _baseDamage += 10;
+                    break;
+                case CharacterClass.Archer:
+                    _baseDamage += 20;
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 }

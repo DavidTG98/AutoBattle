@@ -1,8 +1,5 @@
 ﻿using System;
-using static AutoBattle.Character;
-using static AutoBattle.Grid;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AutoBattle
 {
@@ -10,116 +7,110 @@ namespace AutoBattle
     {
         private static void Main(string[] args)
         {
-            Grid grid = new Grid(5, 5);
+            Grid grid = new Grid(3, 10);
             List<Character> AllPlayers = new List<Character>();
+            Action ShowAllPlayersStats = delegate { };
+            Action<Grid> DoPlayersAction = delegate { };
 
+            bool isOver = false;
+            Team winnerTeam = Team.Letter;
             int currentTurn = 0;
+            int playerClassChoice = Helper.GetValidPlayerClassChoice();
+
+            TeamManager.Init();
+            TeamManager.OnBattleIsOver += TeamManager_OnBattleIsOver;
 
             //CREATE CHARACTERS!
-            int playerClassChoice = GetValidPlayerClassChoice();
+            Console.WriteLine();
+            CreatePlayers();
+
+            TeamManager.SetTargets();
 
             Console.WriteLine();
-            Character PlayerCharacter = CreateCharacter("Player", health: 100, baseDamage: 20, damageMultiplier: 1, (CharacterClass)playerClassChoice);
-            Character EnemyCharacter = CreateCharacter("Enemy", health: 100, baseDamage: 20, damageMultiplier: 1, Helper.GetRandomClass());
+            grid.DrawBattlefield();
 
-            StartGame();
+            UpdateTurn();
 
-            int GetValidPlayerClassChoice()
+            void UpdateTurn()
             {
-                //asks for the player to choose between for possible classes via console.
-                Console.WriteLine("Choose Between One of this Classes:\n");
+                Console.Write("-------------------------------------------");
+                Console.WriteLine($"Turn {currentTurn} has started");
 
-                //Write all classes
-                string[] classes = Enum.GetNames(typeof(CharacterClass));
-                for (int i = 0; i < classes.Length; i++)
-                    Console.Write($"[{i + 1}]{classes[i]} ");
+                DoPlayersAction?.Invoke(grid);
 
                 Console.WriteLine();
+                Console.WriteLine("STATS");
+                ShowAllPlayersStats?.Invoke();
 
-                if (int.TryParse(Console.ReadLine(), out int choice) == false)
-                    Redo();
-
-                while (choice <= 0 || choice > Enum.GetNames(typeof(CharacterClass)).Length)
-                    Redo();
-
-                void Redo()
+                if (isOver)
                 {
-                    Console.WriteLine();
-                    choice = GetValidPlayerClassChoice();
+                    Console.WriteLine("-------------------------------------------");
+                    Console.WriteLine($"TEAM {winnerTeam} WIN THE GAME!!!");
+                    return;
                 }
 
-                return choice;
+                currentTurn++;
+
+                Console.WriteLine("\nClick on any key to start the next turn...\n");
+
+                ConsoleKeyInfo key = Console.ReadKey();
+                UpdateTurn();
             }
-            Character CreateCharacter(string name, int health, int baseDamage, int damageMultiplier, CharacterClass characterClass)
+
+
+            void CreatePlayers()
             {
-                Console.WriteLine($"{name} Class Choice: {characterClass}");
-                Character character = new Character(name, AllPlayers.Count, health, baseDamage, damageMultiplier, characterClass);
-                AllPlayers.Add(character);
-                return character;
+                CreateCharacter(new Character("Player_01", 'P', 0, health: 100, baseDamage: 22, damageMultiplier: 1, (CharacterClass)playerClassChoice, Team.Letter));
+                CreateCharacter(new Character("Player_02", 'J', 1, health: 100, baseDamage: 22, damageMultiplier: 1, Helper.GetRandomClass(), Team.Letter));
+                CreateCharacter(new Character("Player_03", 'K', 1, health: 100, baseDamage: 22, damageMultiplier: 1, Helper.GetRandomClass(), Team.Letter));
+
+                CreateCharacter(new Character("Enemy_01", '5', 1, health: 125, baseDamage: 15, damageMultiplier: 1, Helper.GetRandomClass(), Team.Number));
+                CreateCharacter(new Character("Enemy_02", '6', 1, health: 125, baseDamage: 15, damageMultiplier: 1, Helper.GetRandomClass(), Team.Number));
+
+                CreateCharacter(new Character("Minion_01", '$', 1, health: 25, baseDamage: 10, damageMultiplier: 2, Helper.GetRandomClass(), Team.Simbol));
+                CreateCharacter(new Character("Minion_02", '#', 1, health: 25, baseDamage: 10, damageMultiplier: 2, Helper.GetRandomClass(), Team.Simbol));
+
+
+                void CreateCharacter(Character character)
+                {
+                    AllPlayers.Add(character);
+                    ShowAllPlayersStats += character.ShowStats;
+                    DoPlayersAction += character.DoAction;
+                    character.OnDeath += OnCharacterDie;
+
+                    TeamManager.AddCharacterToTeam(character, character.Team);
+
+                    //Set Character to a random position
+                    while (TrySetCharacterPosition(character, grid.GetRandomCoordenate()) == false) { }
+                }
             }
+
             bool TrySetCharacterPosition(Character character, (int, int) position)
             {
+                if (grid.Exists(position) == false)
+                {
+                    Console.WriteLine($"{position} is not a valid position");
+                    return false;
+                }
+
                 if (grid.dicGrids[position].IsOcupied)
                     return false;
 
-                Console.WriteLine($"{character.Name} spawn at ({position.Item1},{position.Item2})");
+                //Console.WriteLine($"{character.Name} spawn at ({position.Item1},{position.Item2})");
                 character.MoveTo(grid, position, true);
                 return true;
             }
 
-            void StartGame()
+            void OnCharacterDie(Character character)
             {
-                Console.WriteLine();
-                EnemyCharacter.SetCharacterTarget(PlayerCharacter);
-                PlayerCharacter.SetCharacterTarget(EnemyCharacter);
-
-                //Set Characters position
-                Console.WriteLine();
-                TrySetCharacterPosition(PlayerCharacter, (0, 0));
-                while (TrySetCharacterPosition(EnemyCharacter, grid.GetRandomCoordenate()) == false) { }
-
-                grid.DrawBattlefield();
-
-                StartTurn();
+                grid.SetGridOcupation(character.CurrentBox.Coordinates, false);
+                TeamManager.RemovePlayerFromTeam(character);
             }
 
-            void StartTurn()
+            void TeamManager_OnBattleIsOver(Team team)
             {
-                Console.WriteLine($"{currentTurn} Turn has started");
-
-                foreach (Character character in AllPlayers)
-                {
-                    Console.WriteLine($"{character.Name} start turn");
-                    character.DoAction(grid);
-                }
-
-                currentTurn++;
-                HandleTurn();
-            }
-
-            void HandleTurn()
-            {
-                if (PlayerCharacter.IsDead)
-                {
-                    Console.WriteLine("Player Character is dead");
-                    Console.Write(Environment.NewLine + Environment.NewLine);
-                    return;
-                }
-                else if (EnemyCharacter.IsDead)
-                {
-                    Console.WriteLine("Enemy Character is dead");
-                    Console.Write(Environment.NewLine + Environment.NewLine);
-                    return;
-                }
-                else
-                {
-                    Console.Write(Environment.NewLine + Environment.NewLine);
-                    Console.WriteLine("Click on any key to start the next turn...\n");
-                    Console.Write(Environment.NewLine + Environment.NewLine);
-
-                    ConsoleKeyInfo key = Console.ReadKey();
-                    StartTurn();
-                }
+                winnerTeam = team;
+                isOver = true;
             }
         }
     }

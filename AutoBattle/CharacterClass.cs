@@ -7,4 +7,11 @@
         Cleric = 3,
         Archer = 4
     }
+
+    public enum Team
+    {
+        Letter = 1,
+        Number = 2,
+        Simbol = 3
+    }
 }
