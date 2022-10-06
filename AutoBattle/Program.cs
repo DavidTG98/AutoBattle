@@ -60,15 +60,15 @@ namespace AutoBattle
 
             void CreatePlayers()
             {
-                CreateCharacter(new Character("Player_01", 'P', 0, health: 100, baseDamage: 22, damageMultiplier: 1, (CharacterClass)playerClassChoice, Team.Letter));
-                CreateCharacter(new Character("Player_02", 'J', 1, health: 100, baseDamage: 22, damageMultiplier: 1, Helper.GetRandomClass(), Team.Letter));
-                CreateCharacter(new Character("Player_03", 'K', 1, health: 100, baseDamage: 22, damageMultiplier: 1, Helper.GetRandomClass(), Team.Letter));
+                CreateCharacter(new Character("Player_01", 'P', health: 100, baseDamage: 22, damageMultiplier: 1, (CharacterClass)playerClassChoice, Team.Letter));
+                CreateCharacter(new Character("Player_02", 'J', health: 100, baseDamage: 22, damageMultiplier: 1, Helper.GetRandomClass(), Team.Letter));
+                CreateCharacter(new Character("Player_03", 'K', health: 100, baseDamage: 22, damageMultiplier: 1, Helper.GetRandomClass(), Team.Letter));
 
-                CreateCharacter(new Character("Enemy_01", '5', 1, health: 125, baseDamage: 15, damageMultiplier: 1, Helper.GetRandomClass(), Team.Number));
-                CreateCharacter(new Character("Enemy_02", '6', 1, health: 125, baseDamage: 15, damageMultiplier: 1, Helper.GetRandomClass(), Team.Number));
+                CreateCharacter(new Character("Enemy_01", '5', health: 125, baseDamage: 15, damageMultiplier: 1, Helper.GetRandomClass(), Team.Number));
+                CreateCharacter(new Character("Enemy_02", '6', health: 125, baseDamage: 15, damageMultiplier: 1, Helper.GetRandomClass(), Team.Number));
 
-                CreateCharacter(new Character("Minion_01", '$', 1, health: 25, baseDamage: 10, damageMultiplier: 2, Helper.GetRandomClass(), Team.Simbol));
-                CreateCharacter(new Character("Minion_02", '#', 1, health: 25, baseDamage: 10, damageMultiplier: 2, Helper.GetRandomClass(), Team.Simbol));
+                CreateCharacter(new Character("Minion_01", '$', health: 25, baseDamage: 10, damageMultiplier: 2, Helper.GetRandomClass(), Team.Simbol));
+                CreateCharacter(new Character("Minion_02", '#', health: 25, baseDamage: 10, damageMultiplier: 2, Helper.GetRandomClass(), Team.Simbol));
 
 
                 void CreateCharacter(Character character)
