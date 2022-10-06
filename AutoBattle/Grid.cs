@@ -13,8 +13,8 @@ namespace AutoBattle
 
         public Grid(int Lines, int Columns)
         {
-            xLenght = Lines;
-            yLength = Columns;
+            xLenght = Math.Max(1, Lines);
+            yLength = Math.Max(1, Columns);
 
             for (int x = 0; x < Lines; x++)
             {
@@ -47,8 +47,6 @@ namespace AutoBattle
 
         public void DrawBattlefield()
         {
-            Console.WriteLine();
-
             for (int i = 0; i < xLenght; i++)
             {
                 for (int j = 0; j < yLength; j++)

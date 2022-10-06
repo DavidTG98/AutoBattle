@@ -9,23 +9,21 @@ namespace AutoBattle
         public static readonly Dictionary<Team, List<Character>> _teams = new Dictionary<Team, List<Character>>();
         public static event Action<Team> OnBattleIsOver = delegate { };
 
-        public static void Init()
+        public static void AddCharacterToTeam(Character character)
         {
-            foreach (Team t in Enum.GetValues(typeof(Team)))
-            {
-                _teams.Add(t, new List<Character>());
-            }
-        }
+            if (_teams.ContainsKey(character.Team) == false)
+                _teams.Add(character.Team, new List<Character>());
 
-        public static void AddCharacterToTeam(Character character, Team team)
-        {
-            _teams[team].Add(character);
+            _teams[character.Team].Add(character);
         }
 
         public static void SetTargets()
         {
             foreach (Team type in Enum.GetValues(typeof(Team)))
             {
+                if (_teams.ContainsKey(type) == false)
+                    continue;
+
                 foreach (KeyValuePair<Team, List<Character>> team in _teams)
                 {
                     if (team.Key != type)

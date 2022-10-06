@@ -9,13 +9,10 @@ namespace AutoBattle
         private int _baseDamage;
         private int _damageMultiplier;
 
-        private CharacterClass _class;
-
         private readonly List<Character> _targets = new List<Character>();
         private Character _closestTarget;
         public event Action<Character> OnDeath = delegate { };
         private bool isDead;
-
 
         //Properties
         public GridBox CurrentBox { get; private set; }
@@ -23,7 +20,7 @@ namespace AutoBattle
         public int Health { get; private set; }
         public char Simbol { get; private set; }
         public Team Team { get; private set; }
-
+        public CharacterClass Class { get; private set; }
 
         public void AddTarget(Character target) => _targets.Add(target);
 
@@ -33,19 +30,17 @@ namespace AutoBattle
             Health = health;
             Simbol = simbol;
             Team = team;
+            Class = characterClass;
 
             _baseDamage = baseDamage;
             _damageMultiplier = damageMultiplier;
-            _class = characterClass;
 
             HandleClassChoice();
-
-            Console.WriteLine($"{name}({simbol}) / Class Choice: {characterClass}");
         }
 
         public bool MoveTo(Grid grid, (int, int) coordenate, bool setPos = false)
         {
-            if (setPos == false)
+            if (setPos == false && grid.dicGrids[coordenate].IsOcupied == false)
                 grid.SetGridOcupation(CurrentBox.Coordinates, false);
 
 
@@ -83,9 +78,8 @@ namespace AutoBattle
             isDead = true;
             Health = 0;
 
-            OnDeath?.Invoke(this);
-
             Console.WriteLine($"{Name}({Simbol}) has died. Bravely");
+            OnDeath?.Invoke(this);
         }
 
         public void DoAction(Grid grid)
@@ -93,6 +87,7 @@ namespace AutoBattle
             if (isDead)
                 return;
 
+            Console.WriteLine("-------------------------");
             Console.WriteLine($"{Name}({Simbol}) phase!");
 
             GetClosestTarget();
@@ -141,8 +136,8 @@ namespace AutoBattle
         public void Attack(Character target)
         {
             int damage = Helper.GetRandomInt(1, _baseDamage * _damageMultiplier);
-            target.TakeDamage(damage);
             Console.WriteLine($"{Name}({Simbol}) attacked {target.Name}({target.Simbol}) and did {damage} damage\n");
+            target.TakeDamage(damage);
         }
 
         public void ShowStats()
@@ -158,7 +153,7 @@ namespace AutoBattle
 
         public void HandleClassChoice()
         {
-            switch (_class)
+            switch (Class)
             {
                 case CharacterClass.Warrior:
                     Health += 20;

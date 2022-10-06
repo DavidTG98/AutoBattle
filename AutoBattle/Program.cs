@@ -7,17 +7,15 @@ namespace AutoBattle
     {
         private static void Main(string[] args)
         {
-            Grid grid = new Grid(3, 10);
+            Grid grid = new Grid(2, 2);
             List<Character> AllPlayers = new List<Character>();
             Action ShowAllPlayersStats = delegate { };
-            Action<Grid> DoPlayersAction = delegate { };
 
             bool isOver = false;
             Team winnerTeam = Team.Letter;
             int currentTurn = 0;
             int playerClassChoice = Helper.GetValidPlayerClassChoice();
 
-            TeamManager.Init();
             TeamManager.OnBattleIsOver += TeamManager_OnBattleIsOver;
 
             //CREATE CHARACTERS!
@@ -33,14 +31,19 @@ namespace AutoBattle
 
             void UpdateTurn()
             {
-                Console.Write("-------------------------------------------");
-                Console.WriteLine($"Turn {currentTurn} has started");
+                Console.WriteLine("\nClick on any key to start the next turn...\n");
 
-                DoPlayersAction?.Invoke(grid);
+                ConsoleKeyInfo key = Console.ReadKey();
+                currentTurn++;
 
-                Console.WriteLine();
-                Console.WriteLine("STATS");
-                ShowAllPlayersStats?.Invoke();
+                foreach (Character c in AllPlayers)
+                {
+                    c.DoAction(grid);
+
+                    if (isOver)
+                        break;
+                }
+
 
                 if (isOver)
                 {
@@ -49,14 +52,10 @@ namespace AutoBattle
                     return;
                 }
 
-                currentTurn++;
-
-                Console.WriteLine("\nClick on any key to start the next turn...\n");
-
-                ConsoleKeyInfo key = Console.ReadKey();
+                Console.WriteLine($"\nSTATS ====== TURN: {currentTurn}\n");
+                ShowAllPlayersStats?.Invoke();
                 UpdateTurn();
             }
-
 
             void CreatePlayers()
             {
@@ -73,15 +72,22 @@ namespace AutoBattle
 
                 void CreateCharacter(Character character)
                 {
+                    if (AllPlayers.Count == grid.xLenght * grid.yLength)
+                    {
+                        Console.WriteLine("THE BATTLEFIELD IS ALREADY FULL");
+                        return;
+                    }
+
                     AllPlayers.Add(character);
                     ShowAllPlayersStats += character.ShowStats;
-                    DoPlayersAction += character.DoAction;
                     character.OnDeath += OnCharacterDie;
 
-                    TeamManager.AddCharacterToTeam(character, character.Team);
+                    TeamManager.AddCharacterToTeam(character);
 
                     //Set Character to a random position
                     while (TrySetCharacterPosition(character, grid.GetRandomCoordenate()) == false) { }
+
+                    Console.WriteLine($"{character.Name}({character.Simbol}) / Class Choice: {character.Class}");
                 }
             }
 
